@@ -7,7 +7,7 @@ Tommy King
 -   [Requirements](#requirements)
 -   [Functions Written for (Gotta) Catching All of the
     Data](#functions-written-for-gotta-catching-all-of-the-data)
-    -   [Damage Type Functions](#damage-type-functions)
+    -   [Damage Type Analysis Function](#damage-type-analysis-function)
 
 # Introduction
 
@@ -30,56 +30,38 @@ library(jsonlite)
 
 # Functions Written for (Gotta) Catching All of the Data
 
-## Damage Type Functions
+## Damage Type Analysis Function
 
 In this section of functions, we will make some tools for querying the
 Pokemon type data so we can do some analysis on the balance between
-various types and their damage effectiveness vs. other types.
+various types and their damage effectiveness vs. other types. We’ll
+write one master function here that takes the user argument of a type
+and a specification of what kind of damage class we’re interested in:  
+\* `super_effective` (double damage **from** the given type),  
+\* `not_very` (half damage **from** the given type)  
+\* `no_effect` (no damage **from** the given type)  
+\* `super_against` (double damage **against** the given type)  
+\* `not_very_against` (half damage **against** the given type)  
+\* `no_effect_against` (no damage **against** the given type)
 
-### It’s super effective!
-
-This first function we’re going to write is going to take a Pokemon type
-and utilize the `types` endpoint in the PokeAPI to return a list of
-types that the given type is super effective against. This will help us
-out later on in our analysis when we want to look at how many types each
-type is super effective against. We take the desired type as an argument
-here, grab the JSON from the API and drill down into the attribute
-`double_damage_to` which will give us a vector of the super effective
-types.
-
-``` r
-superE <- function(type){
-  type_info <- fromJSON(paste0("https://pokeapi.co/api/v2/type/",type,"/"))
-  
-  return(type_info$damage_relations$double_damage_to$name)
-}
-```
-
-### It’s not very effective…
-
-The next function we’ll add is very similar to the previous one, but
-instead of getting the types our given type is super effective against,
-we’ll grab the types that our given one only does half damage against.
+Our function below will query the `type` endpoint on the PokeAPI. It’s
+going to grab the JSON at the url we build using the type we take in as
+an argument, and then drills down onto the desired damage class based on
+the other argument we’re taking in. The return value here is a vector of
+the names of the other type(s) that fit the specifications.
 
 ``` r
-notVery <- function(type){
+damage <- function(type, damage_class){
   type_info <- fromJSON(paste0("https://pokeapi.co/api/v2/type/",type,"/"))
+ 
+  attrib <- switch(damage_class, "super_effective" = "double_damage_to",
+                                 "not_very" = "half_damage_to",
+                                 "no_effect" = "no_damage_to",
+                                 "super_against" = "double_damage_against",
+                                 "not_very_against" = "half_damage_against",
+                                 "no_effect_against" = "no_damage_against")
   
-  return(type_info$damage_relations$half_damage_to$name)
-}
-```
-
-### It doesn’t affect…
-
-In the same vein here, this function will grab any types that the given
-type don’t do any damage aginst. We’ll eventually combine this with the
-previous function to compile any “bad” outcomes, ones where the given
-type isn’t doing as much damage as it should.
-
-``` r
-noEffect <- function(type){
-  type_info <- fromJSON(paste0("https://pokeapi.co/api/v2/type/",type,"/"))
-  
-  return(type_info$damage_relations$no_damage_to$name)
+  damage_list <- type_info$damage_relations[[attrib]]
+  return(damage_list$name)
 }
 ```
