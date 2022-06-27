@@ -13,6 +13,8 @@ Tommy King
         Function](#pokemon-type-distribution-function)
 -   [Exploratory Data Analysis](#exploratory-data-analysis)
     -   [Type Distribution](#type-distribution)
+    -   [Combining Type Distribution with Matchup
+        Matrix](#combining-type-distribution-with-matchup-matrix)
 
 # Introduction
 
@@ -138,7 +140,8 @@ generate_matchups <- function(extreme_weight = 2, modest_weight = 1){
 }
 
 # Taking a look at our generated matrix with the default weights
-generate_matchups()
+matchups <- generate_matchups()
+matchups
 ```
 
     ##          normal fire water electric grass ice fighting poison ground
@@ -226,4 +229,36 @@ Pokemon by type using the data we generated in our last function and
 make a bar chart so we can see some of the discrepancies between the
 counts of the various types.
 
+``` r
+types <- c("normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground",          "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy")
+df <- data.frame(poke_counts, row.names = types)
+ggplot(df, aes(x=types, y=poke_counts)) + geom_col(aes(fill = types)) + ylab("# of Pokemon") + ggtitle("Pokemon Count by Type")
+```
+
 ![](Images/barchart-1.png)<!-- -->
+
+## Combining Type Distribution with Matchup Matrix
+
+Given the distribution of all the Pokemon types above, it would be
+interesting to see how this affects our calculated matchup advantages.
+The general premise would be that if a certain type has an advantage
+against a type that’s more common, that advtange would be worth even
+more since it would theoretically come up more often in a matchup.
+
+We’ll start with a scatter plot comparing the sums of all the advantages
+we calculated against all other types vs the number of that type of
+Pokemon that exist to get a general sense of what we’re looking at here.
+
+``` r
+sums <- rep(0, 18)
+for(t in types)
+{
+  sums[grep(t, types)] = sum(matchups[t,])
+}
+
+df2 <- data.frame(cbind(df, sums))
+
+ggplot(df2, aes(x = sums, y = poke_counts)) + geom_point(color = "#FC4E07") + xlab("Sum of Advantage Calculations") + ylab("# of Pokemon") + ggtitle("Type Advantage Sum vs # of Pokemon")
+```
+
+![](Images/scatter-1.png)<!-- -->
