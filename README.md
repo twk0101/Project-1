@@ -9,6 +9,8 @@ Tommy King
     Data](#functions-written-for-gotta-catching-all-of-the-data)
     -   [Damage Type Analysis Function](#damage-type-analysis-function)
     -   [Matchup Matrix Generation.](#matchup-matrix-generation)
+    -   [Pokemon Type Distribution
+        Function](#pokemon-type-distribution-function)
 
 # Introduction
 
@@ -175,3 +177,40 @@ generate_matchups()
     ## dark          0       4  -2    0     3      0    0     0    -3
     ## steel         1       1   1    3     0      1    0     0     3
     ## fairy         0       0   1    0     0      4    3    -3     0
+
+## Pokemon Type Distribution Function
+
+Finally, we’re going to make a function that will generate the
+distribution of the number of Pokemon belonging to each type so that we
+can factor in the number of pokemon belonging to an opposing type and
+factor this into our overall interest in deciding which type has the
+highest overall advantage. We’re going to query a different endpoint in
+the PokeAPI for this, `Pokemon` instead of `types`. We’re going to
+maintain a dataframe that’s incrementing the counts for each type. Note
+that we’re going to count a Pokemon that has more than one type as one
+in each category for this purpose.
+
+``` r
+generate_distribution <- function(){
+  counts <- rep(0, 18)
+  types <- c("normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground",          "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy")
+  
+  for (i in  1:905)
+  {
+    poke <- fromJSON(paste0("https://pokeapi.co/api/v2/pokemon/",i,"/"))
+    for (t in poke$types$type$name)
+    {
+      counts[grep(t, types)] = counts[grep(t, types)] + 1
+    }
+  }
+  
+  return(counts)
+}
+
+# Taking a look at our raw counts
+poke_counts <- generate_distribution()
+poke_counts
+```
+
+    ##  [1] 117  71 142  57 107  41  62  71  68 103  91  85  66  52  56  56  54
+    ## [18]  55

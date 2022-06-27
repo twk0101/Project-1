@@ -99,3 +99,28 @@ generate_matchups <- function(extreme_weight = 2, modest_weight = 1){
 # Taking a look at our generated matrix with the default weights
 generate_matchups()
 ```
+  
+## Pokemon Type Distribution Function  
+Finally, we're going to make a function that will generate the distribution of the number of Pokemon belonging to each type so that we can factor in the number of pokemon belonging to an opposing type and factor this into our overall interest in deciding which type has the highest overall advantage. We're going to query a different endpoint in the PokeAPI for this, `Pokemon` instead of `types`. We're going to maintain a dataframe that's incrementing the counts for each type. Note that we're going to count a Pokemon that has more than one type as one in each category for this purpose.  
+  
+```{r generatedis, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, cache = TRUE}
+generate_distribution <- function(){
+  counts <- rep(0, 18)
+  types <- c("normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground",          "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy")
+  
+  for (i in  1:905)
+  {
+    poke <- fromJSON(paste0("https://pokeapi.co/api/v2/pokemon/",i,"/"))
+    for (t in poke$types$type$name)
+    {
+      counts[grep(t, types)] = counts[grep(t, types)] + 1
+    }
+  }
+  
+  return(counts)
+}
+
+# Taking a look at our raw counts
+poke_counts <- generate_distribution()
+poke_counts
+```
