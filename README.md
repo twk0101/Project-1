@@ -226,4 +226,4 @@ Pokemon by type using the data we generated in our last function and
 make a bar chart so we can see some of the discrepancies between the
 counts of the various types.
 
-![](../Images/barchart-1.png)<!-- -->
+![](Images/barchart-1.png)<!-- -->
