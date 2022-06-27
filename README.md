@@ -1,7 +1,7 @@
 Project 1 - API Vignette
 ================
 Tommy King
-2022-06-26
+2022-06-27
 
 -   [Introduction](#introduction)
 -   [Requirements](#requirements)
@@ -226,13 +226,13 @@ poke_counts
 
 We’ll start our analysis here with taking a look at the distribution of
 Pokemon by type using the data we generated in our last function and
-make a bar chart so we can see some of the discrepancies between the
+make a histogram so we can see some of the discrepancies between the
 counts of the various types.
 
 ``` r
 types <- c("normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground",          "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy")
 df <- data.frame(poke_counts, row.names = types)
-ggplot(df, aes(x=types, y=poke_counts)) + geom_col(aes(fill = types)) + ylab("# of Pokemon") + ggtitle("Pokemon Count by Type")
+ggplot(df, aes(types, poke_counts)) + geom_col(aes(fill = types)) + ylab("# of Pokemon") + xlab("Pokemon Type") + ggtitle("Pokemon Count by Type")
 ```
 
 ![](Images/barchart-1.png)<!-- -->
@@ -248,6 +248,7 @@ more since it would theoretically come up more often in a matchup.
 We’ll start with a scatter plot comparing the sums of all the advantages
 we calculated against all other types vs the number of that type of
 Pokemon that exist to get a general sense of what we’re looking at here.
+As we can see below, we’re kind of all over the place!
 
 ``` r
 sums <- rep(0, 18)
@@ -262,3 +263,23 @@ ggplot(df2, aes(x = sums, y = poke_counts)) + geom_point(color = "#FC4E07") + xl
 ```
 
 ![](Images/scatter-1.png)<!-- -->
+
+An interesting combination of these things could be to multiply the
+advantage calculation by the relative frequency of each type so that we
+get a sense of which types have the advantage against other types that
+have the most members. We’ll make a new matrix for this that features
+the calculations and show the results in a barchart.
+
+``` r
+relative <- rep(0, 18)
+for(t in types)
+{
+  relative[grep(t, types)] = df[t,]/1354
+}
+df3 <- cbind(df2, relative)
+df3$final <- df3$relative * df3$sum
+
+ggplot(df3, aes(x=types, y=final)) + geom_col(aes(fill = types)) + ylab("Overall Matchup Advantage") + ggtitle("Type Analysis")
+```
+
+![](Images/heatmap-1.png)<!-- -->
