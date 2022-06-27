@@ -124,3 +124,14 @@ generate_distribution <- function(){
 poke_counts <- generate_distribution()
 poke_counts
 ```
+  
+# Exploratory Data Analysis
+  
+## Type Distribution  
+We'll start our analysis here with taking a look at the distribution of Pokemon by type using the data we generated in our last function and make a bar chart so we can see some of the discrepancies between the counts of the various types.  
+  
+```{r barchart, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, cache = TRUE}
+types <- c("normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground",          "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy")
+df <- data.frame(poke_counts, row.names = types)
+ggplot(df, aes(x=types, y=poke_counts)) + geom_col(aes(fill = types)) + xlab("Pokemon Type") + ylab("# of Pokemon") + ggtitle("Pokemon Count by Type")
+```

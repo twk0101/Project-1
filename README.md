@@ -11,6 +11,8 @@ Tommy King
     -   [Matchup Matrix Generation.](#matchup-matrix-generation)
     -   [Pokemon Type Distribution
         Function](#pokemon-type-distribution-function)
+-   [Exploratory Data Analysis](#exploratory-data-analysis)
+    -   [Type Distribution](#type-distribution)
 
 # Introduction
 
@@ -214,3 +216,14 @@ poke_counts
 
     ##  [1] 117  71 142  57 107  41  62  71  68 103  91  85  66  52  56  56  54
     ## [18]  55
+
+# Exploratory Data Analysis
+
+## Type Distribution
+
+We’ll start our analysis here with taking a look at the distribution of
+Pokemon by type using the data we generated in our last function and
+make a bar chart so we can see some of the discrepancies between the
+counts of the various types.
+
+![](../Images/barchart-1.png)<!-- -->
