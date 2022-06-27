@@ -52,7 +52,50 @@ damage <- function(type, damage_class){
   damage_list <- type_info$damage_relations[[attrib]]
   return(damage_list$name)
 }
+
+# What Pokemon types are ground types super effective against?
+damage("ground", "super_effective")
 ```
   
+## Matchup Matrix Generation.  
+Next, we're going to write another function that will help us aggregate some of this data based on a "good" or "bad" damage trait for a given type. "Good" outcomes are when the given type is super effective against another type, or when another type is not very effective, or does no damage to it. "Bad" outcomes are the inverse, when another type is super effective against the given type, or when the given type is not very effective or does no damage to another type. To give this function a little more utility, we're going to give the user the opportunity to weight these outcomes (`extreme_weight` corresponds to the good outcome of being super effective and multiplied by -1 corresponds to the bad outcomes of doing no damage and having an opposing type be super effective. `modest_weight` corresponds to the good outcomes of having an opposing type do half or no damage and multiplied by -1 corresponds to the bad outcome of doing half damage against another type.) We then create a matrix of all the possible type matchups and fill in a value based on the weights and the data we pull from the previous function.  
 
+We'll make a vector of all the possible types, use this vector for both the rows and columns of our matrix and then fill in the individual cells by iterating through all the types and getting the corresponding damage lists from our previous function. Note that we're adding the weight values here to the matchup matrix for each new damage class we find in the hopes of estimating the total advantage or disadvantage that the type in the row has versus the type in the column.  
   
+```{r matchups, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+generate_matchups <- function(extreme_weight = 2, modest_weight = 1){  
+  types <- c("normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground",          "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy")
+  
+  matchups <- matrix(0, 18, 18)
+  rownames(matchups) <- as.list(types)
+  colnames(matchups) <- as.list(types)
+  
+  for (t in types)
+  {
+    super <- damage(t, "super_effective")
+    half <- damage(t, "not_very")
+    no <- damage(t, "no_effect")
+    
+    for (s in super)
+    {
+      matchups[t,s] = matchups[t,s] + extreme_weight
+      matchups[s,t] = matchups[s,t] + (-1 * extreme_weight)
+    }
+    for (h in half)
+    {
+      matchups[t,h] = matchups[t,h] + (-1 * modest_weight)
+      matchups[h,t] = matchups[h,t] + modest_weight
+    }
+    for (n in no)
+    {
+      matchups[t,n] = matchups[t,n] + (-1 * extreme_weight)
+      matchups[n,t] =matchups[n,t] + extreme_weight
+    }
+  }
+  
+  return(matchups)
+}
+
+# Taking a look at our generated matrix with the default weights
+generate_matchups()
+```

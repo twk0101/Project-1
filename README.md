@@ -8,6 +8,7 @@ Tommy King
 -   [Functions Written for (Gotta) Catching All of the
     Data](#functions-written-for-gotta-catching-all-of-the-data)
     -   [Damage Type Analysis Function](#damage-type-analysis-function)
+    -   [Matchup Matrix Generation.](#matchup-matrix-generation)
 
 # Introduction
 
@@ -64,4 +65,113 @@ damage <- function(type, damage_class){
   damage_list <- type_info$damage_relations[[attrib]]
   return(damage_list$name)
 }
+
+# What Pokemon types are ground types super effective against?
+damage("ground", "super_effective")
 ```
+
+    ## [1] "poison"   "rock"     "steel"    "fire"     "electric"
+
+## Matchup Matrix Generation.
+
+Next, we’re going to write another function that will help us aggregate
+some of this data based on a “good” or “bad” damage trait for a given
+type. “Good” outcomes are when the given type is super effective against
+another type, or when another type is not very effective, or does no
+damage to it. “Bad” outcomes are the inverse, when another type is super
+effective against the given type, or when the given type is not very
+effective or does no damage to another type. To give this function a
+little more utility, we’re going to give the user the opportunity to
+weight these outcomes (`extreme_weight` corresponds to the good outcome
+of being super effective and multiplied by -1 corresponds to the bad
+outcomes of doing no damage and having an opposing type be super
+effective. `modest_weight` corresponds to the good outcomes of having an
+opposing type do half or no damage and multiplied by -1 corresponds to
+the bad outcome of doing half damage against another type.) We then
+create a matrix of all the possible type matchups and fill in a value
+based on the weights and the data we pull from the previous function.
+
+We’ll make a vector of all the possible types, use this vector for both
+the rows and columns of our matrix and then fill in the individual cells
+by iterating through all the types and getting the corresponding damage
+lists from our previous function. Note that we’re adding the weight
+values here to the matchup matrix for each new damage class we find in
+the hopes of estimating the total advantage or disadvantage that the
+type in the row has versus the type in the column.
+
+``` r
+generate_matchups <- function(extreme_weight = 2, modest_weight = 1){  
+  types <- c("normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground",          "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy")
+  
+  matchups <- matrix(0, 18, 18)
+  rownames(matchups) <- as.list(types)
+  colnames(matchups) <- as.list(types)
+  
+  for (t in types)
+  {
+    super <- damage(t, "super_effective")
+    half <- damage(t, "not_very")
+    no <- damage(t, "no_effect")
+    
+    for (s in super)
+    {
+      matchups[t,s] = matchups[t,s] + extreme_weight
+      matchups[s,t] = matchups[s,t] + (-1 * extreme_weight)
+    }
+    for (h in half)
+    {
+      matchups[t,h] = matchups[t,h] + (-1 * modest_weight)
+      matchups[h,t] = matchups[h,t] + modest_weight
+    }
+    for (n in no)
+    {
+      matchups[t,n] = matchups[t,n] + (-1 * extreme_weight)
+      matchups[n,t] =matchups[n,t] + extreme_weight
+    }
+  }
+  
+  return(matchups)
+}
+
+# Taking a look at our generated matrix with the default weights
+generate_matchups()
+```
+
+    ##          normal fire water electric grass ice fighting poison ground
+    ## normal        0    0     0        0     0   0       -2      0      0
+    ## fire          0    0    -3        0     3   3        0      0     -2
+    ## water         0    3     0       -2    -3   1        0      0      2
+    ## electric      0    0     2        0    -1   0        0      0     -4
+    ## grass         0   -3     3        1     0  -2        0     -3      3
+    ## ice           0   -3    -1        0     2   0       -2      0      2
+    ## fighting      2    0     0        0     0   2        0     -1      0
+    ## poison        0    0     0        0     3   0        1      0     -3
+    ## ground        0    2    -2        4    -3  -2        0      3      0
+    ## flying        0    0     0       -3     3  -2        3      0      2
+    ## psychic       0    0     0        0     0   0        3      2      0
+    ## bug           0   -3     0        0     3   0        0     -1      1
+    ## rock          1    3    -2        0    -2   2       -3      1     -3
+    ## ghost         0    0     0        0     0   0        2      1      0
+    ## dragon        0    1     1        1     1  -2        0      0      0
+    ## dark          0    0     0        0     0   0       -3      0      0
+    ## steel         1   -3    -1       -1     1   3       -2      2     -2
+    ## fairy         0   -1     0        0     0   0        3     -3      0
+    ##          flying psychic bug rock ghost dragon dark steel fairy
+    ## normal        0       0   0   -1     0      0    0    -1     0
+    ## fire          0       0   3   -3     0     -1    0     3     1
+    ## water         0       0   0    2     0     -1    0     1     0
+    ## electric      3       0   0    0     0     -1    0     1     0
+    ## grass        -3       0  -3    2     0     -1    0    -1     0
+    ## ice           2       0   0   -2     0      2    0    -3     0
+    ## fighting     -3      -3   0    3    -2      0    3     2    -3
+    ## poison        0      -2   1   -1    -1      0    0    -2     3
+    ## ground       -2       0  -1    3     0      0    0     2     0
+    ## flying        0       0   3   -3     0      0    0    -1     0
+    ## psychic       0       0  -2    0    -2      0   -4    -1     0
+    ## bug          -3       2   0   -2    -1      0    2    -1    -1
+    ## rock          3       0   2    0     0      0    0    -3     0
+    ## ghost         0       2   1    0     0      0   -3     0     0
+    ## dragon        0       0   0    0     0      0    0    -1    -4
+    ## dark          0       4  -2    0     3      0    0     0    -3
+    ## steel         1       1   1    3     0      1    0     0     3
+    ## fairy         0       0   1    0     0      4    3    -3     0
